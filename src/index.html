@@ -1,22 +1,217 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <link rel="stylesheet" href="styles.css" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus App</title>
-        <script type="module" src="/main.js" defer></script>
-    </head>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>机载大气探测数据处理系统</title>
+    <link rel="icon" href="./static/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="./static/bootstrap.min.css">
+    <link rel="stylesheet" href="./static/animate.min.css">
+    <!-- <link href="css/style.css" rel="stylesheet"> -->
+    <style>
+        body {
+            /* 字体 */
+            font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif;
+            /* 字体颜色 */
+            color: #fff;
+        }
+        .bg-container {
+            background: url('./static/background.png') center/100% 100% no-repeat;
+        }
+        .table-fixed {
+            table-layout: fixed;
+        }
+        .text-gradient {
+            font-size: 50px;
+            font-weight: bolder;
+            font-style: italic;
+            /* 文字渐变 */
+            color: transparent;
+            background-clip: text;
+            background-image: linear-gradient(to bottom,white 20px, green 50px);
+            /* 文字阴影 */
+            text-shadow: 10px 10px 100px rgb(218, 151, 8);
+            /* 文字描边 */
+            -webkit-text-stroke: 1px rgb(255, 255, 255);
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-container min-vh-100 p-1">
+        <div class="container">
+            <!-- Toast容器 -->
+            <div class="toast-container fixed-top top-0 end-0 p-3">
+                <div id="systemToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                        <strong class="me-auto">系统提示</strong>
+                        <small>刚刚</small>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body"></div>
+                </div>
+            </div>
 
-    <body>
-        <main class="container">
-            <h1>Welcome to PakePlus</h1>
+            <!-- 顶部LOGO栏 -->
+            <div class="row mt-3">
+                <div class="col-3 d-flex align-items-center">
+                    <img src="./static/company.png" alt="CompanyLogo" class="w-75 animate__animated animate__fadeInLeft">
+                </div>
+                <div class="col-6">                
+                    <h2 class="text-center fw-bold animate__animated animate__backInLeft text-gradient">机载大气探测数据处理系统</h2>
+                    <p class="text-center animate__animated animate__backInRight">Airborne Atmospheric Detection Data Processing System</p>
+                </div>
+                <div class="col-3 d-flex align-items-center">                    
+                    <img src="./static/devcenter.png" alt="DevCenterLogo" class="w-100 animate__animated animate__fadeInRight">
+                </div>
+            </div>
+    
+            <!-- 标题区域 -->
+            <!-- <div class="row mt-4">
+                <h1 class="text-center fw-bolder animate__animated animate__backInLeft">机载大气探测数据处理系统</h1>
+                <h2 class="text-center fw-bold animate__animated animate__backInRight">Airborne Atmospheric Detection Data Processing System</h2>
+            </div> -->
+    
+            <!-- 按钮组 -->
+            <div class="row mt-3">
+                <div class="col-2 text-start">
+                    <span class="fw-bold align-middle">系统开关：</span>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-success px-4" id="toggleSystem">开机</button>
+                    </div>
+                </div>
+                <div class="col-3 text-center">
+                    <span class="fw-bold align-middle">刷新时间：</span>
+                    <div class="btn-group" role="group">
+                        <input type="radio" class="btn-check" name="btnradio" id="btnradio1" data-interval="998" disabled checked>
+                        <label class="btn btn-outline-primary px-3" for="btnradio1">1  秒</label>
+                        <input type="radio" class="btn-check" name="btnradio" id="btnradio2" data-interval="498" disabled>
+                        <label class="btn btn-outline-primary px-3" for="btnradio2">0.5秒</label>
+                        <input type="radio" class="btn-check" name="btnradio" id="btnradio3" data-interval="-2" disabled>
+                        <label class="btn btn-outline-primary px-3" for="btnradio3">暂停</label>
+                    </div>
+                </div>
+                <div class="col-3 text-center">
+                    <span class="fw-bold align-middle">系统操作：</span>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-warning px-4" id="sendAnemometerCommand">发送热线仪</button>
+                    </div>
+                </div>
+                <div class="col-4 d-flex align-items-center justify-content-end">
+                    <span class="fw-bold">数据模式：</span>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="dataSource" id="dataSourceRealBackend" value="real_backend" disabled>
+                        <label class="form-check-label" for="dataSourceRealBackend">实时数据</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="dataSource" id="dataSourceSimulateBackEnd" value="simulate_backend" disabled checked>
+                        <label class="form-check-label" for="dataSourceSimulateBackEnd">后台模拟</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="dataSource" id="dataSourceSimulateFrontend" value="simulate_frontend" disabled>
+                        <label class="form-check-label" for="dataSourceSimulateFrontend">前台模拟</label>
+                    </div>
+                </div>
+                <!-- <div class="col-4 text-end">
+                    <span class="fw-bold align-middle">数据模式：</span>
+                    <div class="btn-group" role="group">
+                        <input type="radio" class="btn-check" name="dataSource" id="dataSourceRealBackend" value="real_backend" disabled>
+                        <label class="btn btn-outline-primary" for="dataSourceRealBackend">实时数据</label>
+                        <input type="radio" class="btn-check" name="dataSource" id="dataSourceSimulateBackEnd" value="simulate_backend" disabled checked>
+                        <label class="btn btn-outline-primary" for="dataSourceSimulateBackEnd">后台模拟</label>
+                        <input type="radio" class="btn-check" name="dataSource" id="dataSourceSimulateFrontend" value="simulate_frontend" disabled>
+                        <label class="btn btn-outline-primary" for="dataSourceSimulateFrontend">前台模拟</label>
+                    </div>
+                </div> -->
+            </div>
+    
+            <!-- 数据表格 -->
+            <div class="row mt-3">
+                <div class="col">
+                    <table class="table table-success table-striped-columns table-bordered fw-bold table-fixed"> 
+                        <tbody>
+                            <tr>
+                                <td>日期</td><td class="text-primary" colspan="2"><span id="Date"></span></td>
+                                <td>时间</td><td colspan="2"><span id="Time"></span></td>
+                            </tr>
+                            <tr>
+                                <td>经度信息</td><td><span id="JD"></span></td>
+                                <td>纬度信息</td><td><span id="WD"></span></td>
+                                <td>海拔</td><td><span id="HB"></span></td>
+                            </tr>
+                            <tr>
+                                <td>东向速度</td><td><span id="East"></span></td>
+                                <td>北向速度</td><td><span id="North"></span></td>
+                                <td>天向速度</td><td><span id="Tx"></span></td>
+                            </tr>
+                            <tr>
+                                <td>横滚角-1</td><td colspan="2"><span id="SidAng"></span></td>
+                                <td>横滚角0</td><td colspan="2"><span id="R"></span></td>
+                            </tr>
+                            <tr>
+                                <td>俯仰角-1</td><td colspan="2"><span id="PitAngle"></span></td>
+                                <td>俯仰角0</td><td colspan="2"><span id="P"></span></td>
+                            </tr>
+                            <tr>
+                                <td>偏航角-1</td><td colspan="2"><span id="HeaAng"></span></td>
+                                <td>偏航角0</td><td colspan="2"><span id="Y"></span></td>
+                            </tr>
+                            <tr>
+                                <td>X轴风速</td><td><span id="XW"></span></td>
+                                <td>Y轴风速</td><td><span id="YW"></span></td>
+                                <td>Z轴风速</td><td><span id="ZW"></span></td>
+                            </tr>
+                            <tr>
+                                <td>α角</td><td colspan="2"><span id="AF"></span></td>
+                                <td>β角</td><td colspan="2"><span id="BT"></span></td>
+                            </tr>
+                            <tr>
+                                <td>静压-1</td><td colspan="2"><span id="SPr1"></span></td>
+                                <td>静压0</td><td colspan="2"><span id="Spr2"></span></td>
+                            </tr>
+                            <tr>
+                                <td>差压-1</td><td colspan="2"><span id="CY1"></span></td>
+                                <td>差压0</td><td colspan="2"><span id="CY2"></span></td>
+                            </tr>
+                            <tr>
+                                <td>温度-1</td><td colspan="2"><span id="HT"></span></td>
+                                <td>湿度</td><td colspan="2"><span id="HR"></span></td>
+                            </tr>
+                            <tr>
+                                <td>温度0</td><td colspan="2"><span id="NT"></span></td>
+                                <td>温度1</td><td colspan="2"><span id="DI"></span></td>
+                            </tr>
+                            <tr>
+                                <td>系统状态</td><td colspan="2"><span id="ISTA"></span></td>
+                                <td>滤波器状态</td><td colspan="2"><span id="IFTA"></span></td>
+                            </tr>
+                            <tr>
+                                <td>ANT</td><td><span id="ANT"></span></td>
+                                <td>V</td><td><span id="V"></span></td>
+                                <td>I</td><td><span id="I"></span></td>
+                            </tr>
+                            <tr>
+                                <td>LWC</td><td colspan="2"><span id="LWC"></span></td>
+                                <td>LWS</td><td colspan="2"><span id="LWS"></span></td>
+                            </tr>
+                            <tr>
+                                <td>LWP</td><td colspan="2"><span id="LWP"></span></td>
+                                <td>LWPS</td><td colspan="2"><span id="LWPS"></span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-            <form class="row" id="greet-form">
-                <input id="greet-input" placeholder="Enter a name..." />
-                <button type="submit">Greet</button>
-            </form>
-            <p id="greet-msg"></p>
-        </main>
-    </body>
-</html>
+            <!-- 底部信息 -->
+            <!-- <div class="row position-absolute bottom-0 start-50 translate-middle-x"> -->
+            <div class="row fixed-bottom">
+                <p class="text-center">中国华云气象科技集团有限公司 工程技术研发中心 装备研发室 © 2025. All rights reserved.</p>
+            </div>
+        </div>
+    </div>
+    <!-- jQuery和Bootstrap JS -->
+    <script src="./static/jquery-3.6.0.min.js"></script>
+    <script src="./static/bootstrap.bundle.min.js"></script>
+    <script src="./static/script.js"></script>
+</body>
+</html> 
